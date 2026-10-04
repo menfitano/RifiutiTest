@@ -10,7 +10,8 @@
     .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 460px; text-align: center; }
     h1 { font-size: 1.4rem; margin-bottom: 20px; color: #1a1a1a; }
     
-    .day-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 16px; }
+    .day-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; }
+    .target-day { font-size: 0.85rem; color: #666; font-weight: 600; margin-bottom: 16px; }
     
     .waste-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
     .waste-box { padding: 20px; border-radius: 12px; color: white; font-size: 1.4rem; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
@@ -22,11 +23,12 @@
     .secco { background-color: #757575; }
     .vetro { background-color: #00897B; }
     .sfalci { background-color: #2E7D32; }
-    .pulizia_strada { background-color: #E65100; } /* Arancione per Pulizia Strada */
+    .pulizia_strada { background-color: #E65100; }
     .nessuno { background-color: #B0BEC5; color: #555; }
 
     .day-row { border-bottom: 1px solid #eee; padding: 12px 0; text-align: left; }
-    .day-title { font-weight: bold; margin-bottom: 8px; color: #2563eb; }
+    .day-title { font-weight: bold; margin-bottom: 4px; color: #2563eb; }
+    .day-subtitle { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
     .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
     .checkbox-group label { background: #f0f4f8; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; user-select: none; }
     .checkbox-group input { margin-right: 4px; }
@@ -43,15 +45,16 @@
 <div class="card">
   <!-- VISTA GIORNO (NFC) -->
   <div id="view-mode" style="display:none;">
-    <div id="day-name" class="day-badge">---</div>
-    <p style="font-size:0.9rem; color:#666; margin-bottom:12px;">Rifiuti / Avvisi di oggi:</p>
+    <div id="day-name" class="day-badge">Oggi: ---</div>
+    <div id="target-day" class="target-day">Da esporre stasera per la raccolta di ---</div>
     <div id="waste-container" class="waste-container"></div>
     <button class="btn-secondary" onclick="showConfig()">Modifica Calendario</button>
   </div>
 
   <!-- VISTA CONFIGURAZIONE -->
   <div id="config-mode">
-    <h1>Configura Calendario</h1>
+    <h1>Configura Calendario Raccolta</h1>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Seleziona i rifiuti in base al <b>giorno di passaggio del camion</b> (la pagina calcolerà in automatico l'esposizione della sera prima).</p>
     <form id="schedule-form">
       <div id="days-config"></div>
       <button type="button" onclick="generateLink()">Genera Link per Tag NFC</button>
@@ -86,8 +89,11 @@
     daysKeys.forEach((key, idx) => {
       const row = document.createElement('div');
       row.className = 'day-row';
+      const prevIdx = (idx === 0) ? 6 : idx - 1;
       
-      let html = `<div class="day-title">${dayNamesFull[idx]}</div><div class="checkbox-group">`;
+      let html = `<div class="day-title">Passaggio ${dayNamesFull[idx]}</div>`;
+      html += `<div class="day-subtitle">(Da mettere fuori ${dayNamesFull[prevIdx]} sera)</div>`;
+      html += `<div class="checkbox-group">`;
       wasteList.forEach(w => {
         html += `<label><input type="checkbox" name="${key}" value="${w.key}"> ${w.label}</label>`;
       });
@@ -100,22 +106,29 @@
   function init() {
     buildConfigUI();
     const params = new URLSearchParams(window.location.search);
+    
+    // Giorno corrente (oggi)
     const todayIndex = new Date().getDay();
-    const todayKey = daysKeys[todayIndex];
+    
+    // Giorno del passaggio del camion (domani)
+    const nextDayIndex = (todayIndex + 1) % 7;
+    const nextDayKey = daysKeys[nextDayIndex];
 
-    if (params.has(todayKey)) {
+    if (params.has(nextDayKey)) {
       document.getElementById('config-mode').style.display = 'none';
       document.getElementById('view-mode').style.display = 'block';
       
-      document.getElementById('day-name').innerText = dayNamesFull[todayIndex];
+      document.getElementById('day-name').innerText = 'OGGI: ' + dayNamesFull[todayIndex].toUpperCase();
+      document.getElementById('target-day').innerText = 'Da esporre stasera per la raccolta di ' + dayNamesFull[nextDayIndex] + ':';
+      
       const wasteContainer = document.getElementById('waste-container');
       wasteContainer.innerHTML = '';
 
-      const rawVal = params.get(todayKey);
+      const rawVal = params.get(nextDayKey);
       const selectedWastes = rawVal ? rawVal.split(',') : [];
 
       if (selectedWastes.length === 0 || rawVal === '' || rawVal === 'nessuno') {
-        wasteContainer.innerHTML = `<div class="waste-box nessuno">NESSUNO</div>`;
+        wasteContainer.innerHTML = `<div class="waste-box nessuno">NESSUN RIFIUTO STASERA</div>`;
       } else {
         selectedWastes.forEach(wKey => {
           const item = wasteList.find(x => x.key === wKey);
