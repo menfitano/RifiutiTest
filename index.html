@@ -49,16 +49,16 @@
 <body>
 
 <div class="card">
-  <!-- VISTA GIORNO (NFC / QR CODE) -->
+  <!-- VISTA GIORNO (DISPONIBILE DOPO SCANSIONE LINK CON PARAMETRI) -->
   <div id="view-mode" style="display:none;">
     <div id="view-comune" class="comune-title"></div>
     <div id="day-name" class="day-badge">Oggi: ---</div>
     <div id="target-day" class="target-day">Da esporre stasera per la raccolta di ---</div>
     <div id="waste-container" class="waste-container"></div>
-    <button class="btn-secondary" onclick="showConfig()">Modifica Calendario</button>
+    <button class="btn-secondary" onclick="showConfig()">Modifica Calendario / Comune</button>
   </div>
 
-  <!-- VISTA CONFIGURAZIONE -->
+  <!-- VISTA CONFIGURAZIONE (SCHERMATA DI DEFAULT SE SI APRE IL LINK BASE) -->
   <div id="config-mode">
     <h1>Configura Calendario</h1>
     <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Inserisci il tuo Comune e seleziona i rifiuti in base al <b>giorno di passaggio del camion</b>.</p>
@@ -120,23 +120,28 @@
     buildConfigUI();
     const params = new URLSearchParams(window.location.search);
     
-    // Giorno corrente (oggi)
-    const todayIndex = new Date().getDay();
-    
-    // Giorno del passaggio del camion (domani)
-    const nextDayIndex = (todayIndex + 1) % 7;
-    const nextDayKey = daysKeys[nextDayIndex];
+    // Controlla se l'URL contiene la configurazione dei giorni
+    let hasConfig = false;
+    daysKeys.forEach(k => {
+      if (params.has(k)) hasConfig = true;
+    });
 
-    if (params.has(nextDayKey)) {
+    if (hasConfig) {
       document.getElementById('config-mode').style.display = 'none';
       document.getElementById('view-mode').style.display = 'block';
       
       const comuneName = params.get('comune') || '';
       if (comuneName) {
         document.getElementById('view-comune').innerText = 'COMUNE DI ' + comuneName.toUpperCase();
+        document.getElementById('view-comune').style.display = 'block';
       } else {
         document.getElementById('view-comune').style.display = 'none';
       }
+
+      // Giorno corrente (oggi) e giorno del passaggio del camion (domani)
+      const todayIndex = new Date().getDay();
+      const nextDayIndex = (todayIndex + 1) % 7;
+      const nextDayKey = daysKeys[nextDayIndex];
 
       document.getElementById('day-name').innerText = 'OGGI: ' + dayNamesFull[todayIndex].toUpperCase();
       document.getElementById('target-day').innerText = 'Da esporre stasera per la raccolta di ' + dayNamesFull[nextDayIndex] + ':';
@@ -159,6 +164,20 @@
           wasteContainer.appendChild(box);
         });
       }
+
+      // Precompila i campi della schermata di modifica con i dati correnti
+      if (comuneName) document.getElementById('comune-input').value = comuneName;
+      daysKeys.forEach(k => {
+        const vals = (params.get(k) || '').split(',');
+        vals.forEach(v => {
+          const cb = document.querySelector(`input[name="${k}"][value="${v}"]`);
+          if (cb) cb.checked = true;
+        });
+      });
+    } else {
+      // Nessun parametro: mostra direttamente la configurazione
+      document.getElementById('config-mode').style.display = 'block';
+      document.getElementById('view-mode').style.display = 'none';
     }
   }
 
