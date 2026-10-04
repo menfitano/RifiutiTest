@@ -15,13 +15,14 @@
     .waste-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
     .waste-box { padding: 20px; border-radius: 12px; color: white; font-size: 1.4rem; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
     
-    /* Colori Frazioni Rifiuti */
+    /* Colori Frazioni Rifiuti e Servizi */
     .umido { background-color: #8D6E63; }
     .carta { background-color: #1E88E5; }
     .plastica { background-color: #FDD835; color: #333; }
     .secco { background-color: #757575; }
     .vetro { background-color: #00897B; }
-    .sfalci { background-color: #2E7D32; } /* Verde per Taglio Erba / Potature */
+    .sfalci { background-color: #2E7D32; }
+    .pulizia_strada { background-color: #E65100; } /* Arancione per Pulizia Strada */
     .nessuno { background-color: #B0BEC5; color: #555; }
 
     .day-row { border-bottom: 1px solid #eee; padding: 12px 0; text-align: left; }
@@ -43,7 +44,7 @@
   <!-- VISTA GIORNO (NFC) -->
   <div id="view-mode" style="display:none;">
     <div id="day-name" class="day-badge">---</div>
-    <p style="font-size:0.9rem; color:#666; margin-bottom:12px;">Rifiuti da esporre oggi:</p>
+    <p style="font-size:0.9rem; color:#666; margin-bottom:12px;">Rifiuti / Avvisi di oggi:</p>
     <div id="waste-container" class="waste-container"></div>
     <button class="btn-secondary" onclick="showConfig()">Modifica Calendario</button>
   </div>
@@ -74,7 +75,8 @@
     { key: 'plastica', label: 'Plastica' },
     { key: 'secco', label: 'Secco' },
     { key: 'vetro', label: 'Vetro' },
-    { key: 'sfalci', label: 'Verde / Sfalci' }
+    { key: 'sfalci', label: 'Verde / Sfalci' },
+    { key: 'pulizia_strada', label: 'Pulizia Strada' }
   ];
 
   function buildConfigUI() {
