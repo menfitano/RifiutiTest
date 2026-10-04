@@ -4,11 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Raccolta Differenziata</title>
+  <!-- Libreria QRCode.js via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; padding: 20px; }
     .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 460px; text-align: center; }
-    h1 { font-size: 1.4rem; margin-bottom: 20px; color: #1a1a1a; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; color: #1a1a1a; }
+    .comune-title { font-size: 1.1rem; font-weight: 700; color: #2563eb; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
     
     .day-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; }
     .target-day { font-size: 0.85rem; color: #666; font-weight: 600; margin-bottom: 16px; }
@@ -26,6 +29,8 @@
     .pulizia_strada { background-color: #E65100; }
     .nessuno { background-color: #B0BEC5; color: #555; }
 
+    .input-comune { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 16px; text-align: center; font-weight: 600; }
+    
     .day-row { border-bottom: 1px solid #eee; padding: 12px 0; text-align: left; }
     .day-title { font-weight: bold; margin-bottom: 4px; color: #2563eb; }
     .day-subtitle { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
@@ -37,14 +42,16 @@
     button:hover { background: #1d4ed8; }
 
     #result { margin-top: 20px; display: none; word-break: break-all; }
+    #qrcode { display: flex; justify-content: center; margin: 15px 0; }
     .btn-secondary { background: #6b7280; margin-top: 15px; }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <!-- VISTA GIORNO (NFC) -->
+  <!-- VISTA GIORNO (NFC / QR CODE) -->
   <div id="view-mode" style="display:none;">
+    <div id="view-comune" class="comune-title"></div>
     <div id="day-name" class="day-badge">Oggi: ---</div>
     <div id="target-day" class="target-day">Da esporre stasera per la raccolta di ---</div>
     <div id="waste-container" class="waste-container"></div>
@@ -53,17 +60,22 @@
 
   <!-- VISTA CONFIGURAZIONE -->
   <div id="config-mode">
-    <h1>Configura Calendario Raccolta</h1>
-    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Seleziona i rifiuti in base al <b>giorno di passaggio del camion</b> (la pagina calcolerà in automatico l'esposizione della sera prima).</p>
+    <h1>Configura Calendario</h1>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Inserisci il tuo Comune e seleziona i rifiuti in base al <b>giorno di passaggio del camion</b>.</p>
+    
+    <input type="text" id="comune-input" class="input-comune" placeholder="Inserisci Nome Comune (es. Paullo)" value="">
+
     <form id="schedule-form">
       <div id="days-config"></div>
-      <button type="button" onclick="generateLink()">Genera Link per Tag NFC</button>
+      <button type="button" onclick="generateLink()">Genera Link & QR Code</button>
     </form>
 
     <div id="result">
       <hr style="margin:20px 0;">
-      <p style="font-weight:600; font-size:0.9rem;">Link generato per NFC:</p>
-      <input type="text" id="generated-url" readonly style="width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+      <p style="font-weight:600; font-size:0.9rem;">Scansiona con la fotocamera o copia il link:</p>
+      <div id="qrcode"></div>
+      <p style="font-weight:600; font-size:0.85rem; color:#555; margin-top:10px;">Link generato per Tag NFC:</p>
+      <input type="text" id="generated-url" readonly style="width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #ccc; font-size:0.8rem;">
     </div>
   </div>
 </div>
@@ -71,6 +83,7 @@
 <script>
   const daysKeys = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const dayNamesFull = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+  let qrCodeInstance = null;
   
   const wasteList = [
     { key: 'umido', label: 'Umido' },
@@ -118,6 +131,13 @@
       document.getElementById('config-mode').style.display = 'none';
       document.getElementById('view-mode').style.display = 'block';
       
+      const comuneName = params.get('comune') || '';
+      if (comuneName) {
+        document.getElementById('view-comune').innerText = 'COMUNE DI ' + comuneName.toUpperCase();
+      } else {
+        document.getElementById('view-comune').style.display = 'none';
+      }
+
       document.getElementById('day-name').innerText = 'OGGI: ' + dayNamesFull[todayIndex].toUpperCase();
       document.getElementById('target-day').innerText = 'Da esporre stasera per la raccolta di ' + dayNamesFull[nextDayIndex] + ':';
       
@@ -146,6 +166,11 @@
     const baseUrl = window.location.href.split('?')[0];
     const params = new URLSearchParams();
 
+    const comuneVal = document.getElementById('comune-input').value.trim();
+    if (comuneVal) {
+      params.set('comune', comuneVal);
+    }
+
     daysKeys.forEach(key => {
       const checked = Array.from(document.querySelectorAll(`input[name="${key}"]:checked`)).map(cb => cb.value);
       params.set(key, checked.length > 0 ? checked.join(',') : 'nessuno');
@@ -153,6 +178,19 @@
 
     const finalUrl = `${baseUrl}?${params.toString()}`;
     document.getElementById('generated-url').value = finalUrl;
+    
+    // Generazione QR Code
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = '';
+    qrCodeInstance = new QRCode(qrContainer, {
+      text: finalUrl,
+      width: 180,
+      height: 180,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    });
+
     document.getElementById('result').style.display = 'block';
   }
 
