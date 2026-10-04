@@ -1,1 +1,123 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raccolta Differenziata</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; padding: 20px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 420px; text-align: center; }
+    h1 { font-size: 1.4rem; margin-bottom: 20px; color: #1a1a1a; }
+    
+    /* Stili Display Giorno */
+    .day-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 16px; }
+    .waste-box { padding: 30px 20px; border-radius: 12px; color: white; font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
+    
+    /* Colori Rifiuti */
+    .umido { background-color: #8D6E63; }
+    .carta { background-color: #1E88E5; }
+    .plastica { background-color: #FDD835; color: #333; }
+    .secco { background-color: #757575; }
+    .vetro { background-color: #4CAF50; }
+    .nessuno { background-color: #B0BEC5; color: #555; }
 
+    /* Form Configurazione */
+    .form-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .form-group label { font-weight: 600; font-size: 0.95rem; }
+    select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.95rem; background: #fff; }
+    button { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #1d4ed8; }
+
+    /* Result Box */
+    #result { margin-top: 20px; display: none; word-break: break-all; }
+    #qrcode { display: flex; justify-content: center; margin: 15px 0; }
+    .btn-secondary { background: #6b7280; margin-top: 15px; }
+    .btn-secondary:hover { background: #4b5563; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <!-- VISTA GIORNO (NFC / QR CODE) -->
+  <div id="view-mode" style="display:none;">
+    <div id="day-name" class="day-badge">---</div>
+    <p style="font-size:0.9rem; color:#666; margin-bottom:8px;">Rifiuto da esporre oggi:</p>
+    <div id="waste-type" class="waste-box nessuno">---</div>
+    <button class="btn-secondary" onclick="showConfig()">Modifica Calendario</button>
+  </div>
+
+  <!-- VISTA CONFIGURAZIONE -->
+  <div id="config-mode">
+    <h1>Configura Calendario</h1>
+    <form id="schedule-form">
+      <div class="form-group"><label>Lunedì</label><select id="lun"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <div class="form-group"><label>Martedì</label><select id="mar"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <div class="form-group"><label>Mercoledì</label><select id="mer"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <div class="form-group"><label>Giovedì</label><select id="gio"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <div class="form-group"><label>Venerdì</label><select id="ven"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <div class="form-group"><label>Sabato</label><select id="sab"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <div class="form-group"><label>Domenica</label><select id="dom"><option value="nessuno">Nessuno</option><option value="umido">Umido</option><option value="carta">Carta</option><option value="plastica">Plastica</option><option value="secco">Secco</option><option value="vetro">Vetro</option></select></div>
+      <button type="button" onclick="generateLink()">Genera Link & QR Code</button>
+    </form>
+
+    <div id="result">
+      <hr style="margin:20px 0;">
+      <p style="font-weight:600; font-size:0.9rem;">Link generato per NFC:</p>
+      <input type="text" id="generated-url" readonly style="width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #ccc;">
+      <div id="qrcode"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const days = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
+  const dayNamesFull = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+
+  function init() {
+    const params = new URLSearchParams(window.location.search);
+    const todayIndex = new Date().getDay();
+    const todayKey = days[todayIndex];
+
+    if (params.has(todayKey)) {
+      document.getElementById('config-mode').style.display = 'none';
+      document.getElementById('view-mode').style.display = 'block';
+      
+      const waste = params.get(todayKey) || 'nessuno';
+      document.getElementById('day-name').innerText = dayNamesFull[todayIndex];
+      
+      const wasteBox = document.getElementById('waste-type');
+      wasteBox.innerText = waste.toUpperCase();
+      wasteBox.className = 'waste-box ' + waste;
+    }
+  }
+
+  function generateLink() {
+    const baseUrl = window.location.href.split('?')[0];
+    const params = new URLSearchParams();
+
+    days.forEach(day => {
+      const val = document.getElementById(day).value;
+      params.set(day, val);
+    });
+
+    const finalUrl = `${baseUrl}?${params.toString()}`;
+    document.getElementById('generated-url').value = finalUrl;
+    
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = "";
+    new QRCode(qrContainer, { text: finalUrl, width: 160, height: 160 });
+
+    document.getElementById('result').style.display = 'block';
+  }
+
+  function showConfig() {
+    document.getElementById('view-mode').style.display = 'none';
+    document.getElementById('config-mode').style.display = 'block';
+  }
+
+  init();
+</script>
+</body>
+</html>
