@@ -70,7 +70,10 @@
 
     #result { margin-top: 20px; display: none; word-break: break-all; }
     #qrcode img { display: block; margin: 15px auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    
     .btn-secondary { background: #6b7280; margin-top: 15px; }
+    .btn-download { background: #10b981; margin-top: 10px; }
+    .btn-download:hover { background: #059669; }
     
     /* Footer Credit */
     .footer-credit { margin-top: 24px; font-size: 0.8rem; color: #9ca3af; font-weight: 500; text-align: center; border-top: 1px dashed #e5e7eb; padding-top: 12px; }
@@ -104,7 +107,11 @@
       <hr style="margin:20px 0;">
       <p style="font-weight:600; font-size:0.9rem;">Scansiona con la fotocamera o copia il link:</p>
       <div id="qrcode"></div>
-      <p style="font-weight:600; font-size:0.85rem; color:#555; margin-top:10px;">Link generato per Tag NFC:</p>
+      
+      <!-- Pulsante di download del QR Code -->
+      <button type="button" class="btn-download" onclick="downloadQRCode()">Scarica QR Code</button>
+      
+      <p style="font-weight:600; font-size:0.85rem; color:#555; margin-top:15px;">Link generato per Tag NFC:</p>
       <input type="text" id="generated-url" readonly onclick="this.select()" style="width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #ccc; font-size:0.8rem; text-align:center;">
     </div>
 
@@ -128,6 +135,8 @@
     { key: 'sfalci', label: 'Verde / Sfalci', icon: 'verde.png' },
     { key: 'pulizia_strada', label: 'Pulizia Strada', icon: 'auto.png' }
   ];
+
+  let currentQrImageUrl = '';
 
   function buildConfigUI() {
     const container = document.getElementById('days-config');
@@ -237,10 +246,32 @@
     
     document.getElementById('generated-url').value = finalUrl;
     
+    currentQrImageUrl = `https://quickchart.io/qr?text=${encodeURIComponent(finalUrl)}&size=300`;
+    
     const qrContainer = document.getElementById('qrcode');
-    qrContainer.innerHTML = `<img src="https://quickchart.io/qr?text=${encodeURIComponent(finalUrl)}&size=200" alt="QR Code" width="200" height="200">`;
+    qrContainer.innerHTML = `<img src="${currentQrImageUrl}" alt="QR Code" width="200" height="200">`;
 
     document.getElementById('result').style.display = 'block';
+  }
+
+  async function downloadQRCode() {
+    if (!currentQrImageUrl) return;
+    try {
+      const response = await fetch(currentQrImageUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'QR_Raccolta_Differenziata.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      // Fallback nel caso in cui il fetch venga bloccato da restrizioni del browser
+      window.open(currentQrImageUrl, '_blank');
+    }
   }
 
   function showConfig() {
