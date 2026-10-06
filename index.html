@@ -16,50 +16,48 @@
     .day-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; }
     .target-day { font-size: 0.85rem; color: #666; font-weight: 600; margin-bottom: 16px; }
     
-    .waste-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .waste-container { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+    
+    /* Box del Rifiuto con Sfondo Bianco e Bordo Colorato */
     .waste-box { 
-      padding: 16px 20px; 
-      border-radius: 14px; 
-      color: white; 
-      font-size: 1.5rem; 
-      font-weight: 800; 
-      letter-spacing: 0.5px;
-      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); 
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px; 
+      padding: 16px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 16px;
+      justify-content: flex-start;
+      gap: 20px;
     }
 
-    /* Contenitore bianco rotondo per l'icona */
-    .icon-wrapper {
-      background-color: white;
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    /* Testo del Rifiuto in Nero e Grassetto */
+    .waste-text {
+      color: #111827;
+      font-size: 1.3rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Immagine SVG Grande */
+    .waste-icon {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
       flex-shrink: 0;
     }
-
-    .waste-icon {
-      width: 42px;
-      height: 42px;
-      object-fit: contain;
-    }
     
-    /* Colori Frazioni Rifiuti e Servizi */
-    .umido { background-color: #8D6E63; }
-    .carta { background-color: #1E88E5; }
-    .plastica { background-color: #FDD835; color: #1a1a1a; }
-    .secco { background-color: #757575; }
-    .indifferenziata { background-color: #424242; } /* Grigio Scuro Antracite */
-    .vetro { background-color: #00897B; }
-    .sfalci { background-color: #2E7D32; }
-    .pulizia_strada { background-color: #E65100; }
-    .nessuno { background-color: #B0BEC5; color: #333; }
+    /* Bordo laterale colorato per identificare il tipo di rifiuto */
+    .waste-box.umido { border-left: 8px solid #8D6E63; }
+    .waste-box.carta { border-left: 8px solid #1E88E5; }
+    .waste-box.plastica { border-left: 8px solid #FDD835; }
+    .waste-box.secco { border-left: 8px solid #757575; }
+    .waste-box.indifferenziata { border-left: 8px solid #424242; }
+    .waste-box.vetro { border-left: 8px solid #00897B; }
+    .waste-box.sfalci { border-left: 8px solid #2E7D32; }
+    .waste-box.pulizia_strada { border-left: 8px solid #E65100; }
+    .waste-box.nessuno { border-left: 8px solid #B0BEC5; justify-content: center; font-weight: 700; color: #6b7280; }
 
     .input-comune { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 16px; text-align: center; font-weight: 600; }
     
@@ -198,12 +196,12 @@
           const item = wasteList.find(x => x.key === wKey);
           const labelText = item ? item.label.toUpperCase() : wKey.toUpperCase();
           const imgTag = (item && item.icon) 
-            ? `<div class="icon-wrapper"><img src="${item.icon}" class="waste-icon" alt="${labelText}" /></div>` 
+            ? `<img src="${item.icon}" class="waste-icon" alt="${labelText}" />` 
             : '';
 
           const box = document.createElement('div');
           box.className = `waste-box ${wKey}`;
-          box.innerHTML = `${imgTag} <span>${labelText}</span>`;
+          box.innerHTML = `${imgTag}<span class="waste-text">${labelText}</span>`;
           wasteContainer.appendChild(box);
         });
       }
