@@ -117,7 +117,7 @@
   const daysKeys = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const dayNamesFull = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
   
-  // Lista dei rifiuti con immagini PNG
+  // Tutte le estensioni impostate in minuscolo (.png):
   const wasteList = [
     { key: 'umido', label: 'Umido', icon: 'umido.png' },
     { key: 'carta', label: 'Carta', icon: 'carta.png' },
@@ -235,14 +235,11 @@
 
     const finalUrl = `${baseUrl}?${searchParams.toString()}`;
     
-    // Assegna il link all'input di testo
     document.getElementById('generated-url').value = finalUrl;
     
-    // Genera l'immagine QR Code usando l'API affidabile di QuickChart
     const qrContainer = document.getElementById('qrcode');
     qrContainer.innerHTML = `<img src="https://quickchart.io/qr?text=${encodeURIComponent(finalUrl)}&size=200" alt="QR Code" width="200" height="200">`;
 
-    // Mostra il blocco dei risultati
     document.getElementById('result').style.display = 'block';
   }
 
