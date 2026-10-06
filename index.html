@@ -17,7 +17,24 @@
     .target-day { font-size: 0.85rem; color: #666; font-weight: 600; margin-bottom: 16px; }
     
     .waste-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-    .waste-box { padding: 20px; border-radius: 12px; color: white; font-size: 1.4rem; font-weight: bold; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
+    .waste-box { 
+      padding: 16px 20px; 
+      border-radius: 12px; 
+      color: white; 
+      font-size: 1.4rem; 
+      font-weight: bold; 
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .waste-icon {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
     
     /* Colori Frazioni Rifiuti e Servizi */
     .umido { background-color: #8D6E63; }
@@ -93,14 +110,14 @@
   let qrCodeInstance = null;
   
   const wasteList = [
-    { key: 'umido', label: 'Umido' },
-    { key: 'carta', label: 'Carta' },
-    { key: 'plastica', label: 'Plastica' },
-    { key: 'secco', label: 'Secco' },
-    { key: 'indifferenziata', label: 'Indifferenziata' },
-    { key: 'vetro', label: 'Vetro' },
-    { key: 'sfalci', label: 'Verde / Sfalci' },
-    { key: 'pulizia_strada', label: 'Pulizia Strada' }
+    { key: 'umido', label: 'Umido', icon: 'umido.svg' },
+    { key: 'carta', label: 'Carta', icon: 'carta.svg' },
+    { key: 'plastica', label: 'Plastica', icon: 'plastica.svg' },
+    { key: 'secco', label: 'Secco', icon: 'indiferrenziata.svg' },
+    { key: 'indifferenziata', label: 'Indifferenziata', icon: 'indiferrenziata.svg' },
+    { key: 'vetro', label: 'Vetro', icon: 'vetro.svg' },
+    { key: 'sfalci', label: 'Verde / Sfalci', icon: 'verde.svg' },
+    { key: 'pulizia_strada', label: 'Pulizia Strada', icon: '' }
   ];
 
   function buildConfigUI() {
@@ -166,9 +183,11 @@
         selectedWastes.forEach(wKey => {
           const item = wasteList.find(x => x.key === wKey);
           const labelText = item ? item.label.toUpperCase() : wKey.toUpperCase();
+          const imgTag = (item && item.icon) ? `<img src="${item.icon}" class="waste-icon" alt="${labelText}" />` : '';
+
           const box = document.createElement('div');
           box.className = `waste-box ${wKey}`;
-          box.innerText = labelText;
+          box.innerHTML = `${imgTag} <span>${labelText}</span>`;
           wasteContainer.appendChild(box);
         });
       }
