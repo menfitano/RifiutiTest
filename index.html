@@ -93,14 +93,46 @@
       cursor: pointer;
     }
 
-    button { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; }
-    button:hover { background: #1d4ed8; }
+    /* Box Info Spiegazione */
+    .info-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .info-btn:hover { background: #2563eb; }
+    
+    .info-box {
+      display: none;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      text-align: left;
+      font-size: 0.82rem;
+      color: #1e3a8a;
+      line-height: 1.4;
+    }
+    .info-box h3 { font-size: 0.9rem; margin-bottom: 6px; color: #1e40af; }
+    .info-box ul { margin-left: 18px; margin-top: 6px; margin-bottom: 6px; }
+
+    button.btn-main { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; }
+    button.btn-main:hover { background: #1d4ed8; }
 
     #result { margin-top: 20px; display: none; word-break: break-all; }
     #qrcode img { display: block; margin: 15px auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     
-    .btn-secondary { background: #6b7280; margin-top: 15px; }
-    .btn-download { background: #10b981; margin-top: 10px; }
+    .btn-secondary { background: #6b7280; width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; }
+    .btn-download { background: #10b981; width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
     .btn-download:hover { background: #059669; }
     
     /* Footer Credit */
@@ -122,13 +154,27 @@
   <!-- VISTA CONFIGURAZIONE -->
   <div id="config-mode">
     <h1>Configura Calendario</h1>
-    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Inserisci il Comune e seleziona i rifiuti con la loro frequenza di raccolta (settimanale o ogni 2 settimane).</p>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">Inserisci il Comune e seleziona i rifiuti in base al giorno di passaggio.</p>
     
+    <!-- Pulsante e Box Info Guida -->
+    <button type="button" class="info-btn" onclick="toggleInfoBox()">ℹ️ Come funziona la frequenza?</button>
+    
+    <div id="info-box" class="info-box">
+      <h3>Come impostare la frequenza:</h3>
+      <p>L'anno ha 52 settimane numerate in ordine progressivo da 1 a 52:</p>
+      <ul>
+        <li><b>Tutte le sett.:</b> Il rifiuto viene raccolto ogni settimana.</li>
+        <li><b>Settimane Pari (2, 4, 6, 8...):</b> Il rifiuto viene raccolto a settimane alternate nelle settimane con numero pari dell'anno.</li>
+        <li><b>Settimane Dispari (1, 3, 5, 7...):</b> Il rifiuto viene raccolto a settimane alternate nelle settimane con numero dispari.</li>
+      </ul>
+      <p style="margin-top:4px;"><i>La web app calcola automaticamente la settimana corrente e mostrerà solo il rifiuto corretto del giorno!</i></p>
+    </div>
+
     <input type="text" id="comune-input" class="input-comune" placeholder="Inserisci Nome Comune (es. Paullo)" value="">
 
     <form id="schedule-form">
       <div id="days-config"></div>
-      <button type="button" onclick="generateLink()">Genera Link & QR Code</button>
+      <button type="button" class="btn-main" onclick="generateLink()">Genera Link & QR Code</button>
     </form>
 
     <div id="result">
@@ -162,6 +208,11 @@
   ];
 
   let currentQrImageUrl = '';
+
+  function toggleInfoBox() {
+    const box = document.getElementById('info-box');
+    box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+  }
 
   // Funzione per calcolare il numero della settimana dell'anno (ISO 8601)
   function getISOWeek(d) {
@@ -239,7 +290,6 @@
       const nextDayIndex = (todayIndex + 1) % 7;
       const nextDayKey = daysKeys[nextDayIndex];
 
-      // Calcola la data di domani per verificare la parità della settimana di passaggio
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
       const tomorrowWeekNum = getISOWeek(tomorrow);
@@ -259,12 +309,10 @@
       items.forEach(itemStr => {
         if (!itemStr || itemStr === 'nessuno') return;
 
-        // Parsing stringa es: "carta:even" oppure "umido"
         const parts = itemStr.split(':');
         const wKey = parts[0];
         const freq = parts[1] || 'all';
 
-        // Filtro bisettimanale
         let show = false;
         if (freq === 'all') show = true;
         else if (freq === 'even' && isTomorrowWeekEven) show = true;
@@ -296,7 +344,6 @@
         });
       }
 
-      // Precompilazione Form di Configurazione
       if (comuneName) document.getElementById('comune-input').value = comuneName;
       daysKeys.forEach(k => {
         const rawParam = params.get(k) || '';
