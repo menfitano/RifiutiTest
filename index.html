@@ -7,7 +7,7 @@
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; padding: 20px; }
-    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 460px; text-align: center; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 480px; text-align: center; }
     h1 { font-size: 1.4rem; margin-bottom: 8px; color: #1a1a1a; }
     .comune-title { font-size: 1.1rem; font-weight: 700; color: #2563eb; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
     
@@ -58,12 +58,40 @@
 
     .input-comune { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 16px; text-align: center; font-weight: 600; }
     
-    .day-row { border-bottom: 1px solid #eee; padding: 12px 0; text-align: left; }
+    /* Layout Configurazione */
+    .day-row { border-bottom: 1px solid #eee; padding: 14px 0; text-align: left; }
     .day-title { font-weight: bold; margin-bottom: 4px; color: #2563eb; }
-    .day-subtitle { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
-    .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .checkbox-group label { background: #f0f4f8; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; user-select: none; }
-    .checkbox-group input { margin-right: 4px; }
+    .day-subtitle { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
+    
+    .waste-config-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+    }
+    .waste-config-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .freq-selector {
+      margin-top: 6px;
+      margin-left: 24px;
+      display: flex;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: #555;
+    }
+    .freq-selector label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
 
     button { width: 100%; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; }
     button:hover { background: #1d4ed8; }
@@ -82,7 +110,7 @@
 <body>
 
 <div class="card">
-  <!-- VISTA GIORNO (DISPONIBILE DOPO SCANSIONE LINK CON PARAMETRI) -->
+  <!-- VISTA GIORNO -->
   <div id="view-mode" style="display:none;">
     <div id="view-comune" class="comune-title"></div>
     <div id="day-name" class="day-badge">Oggi: ---</div>
@@ -91,10 +119,10 @@
     <button class="btn-secondary" onclick="showConfig()">Modifica Calendario / Comune</button>
   </div>
 
-  <!-- VISTA CONFIGURAZIONE (SCHERMATA DI DEFAULT SE SI APRE IL LINK BASE) -->
+  <!-- VISTA CONFIGURAZIONE -->
   <div id="config-mode">
     <h1>Configura Calendario</h1>
-    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Inserisci il tuo Comune e seleziona i rifiuti in base al <b>giorno di passaggio del camion</b>.</p>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Inserisci il Comune e seleziona i rifiuti con la loro frequenza di raccolta (settimanale o ogni 2 settimane).</p>
     
     <input type="text" id="comune-input" class="input-comune" placeholder="Inserisci Nome Comune (es. Paullo)" value="">
 
@@ -108,14 +136,12 @@
       <p style="font-weight:600; font-size:0.9rem;">Scansiona con la fotocamera o copia il link:</p>
       <div id="qrcode"></div>
       
-      <!-- Pulsante di download del QR Code -->
       <button type="button" class="btn-download" onclick="downloadQRCode()">Scarica QR Code</button>
       
       <p style="font-weight:600; font-size:0.85rem; color:#555; margin-top:15px;">Link generato per Tag NFC:</p>
       <input type="text" id="generated-url" readonly onclick="this.select()" style="width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #ccc; font-size:0.8rem; text-align:center;">
     </div>
 
-    <!-- Firma Creatore solo in configurazione -->
     <div class="footer-credit">Creato da PENDOLAS</div>
   </div>
 </div>
@@ -124,7 +150,6 @@
   const daysKeys = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const dayNamesFull = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
   
-  // Tutte le estensioni impostate in minuscolo (.png):
   const wasteList = [
     { key: 'umido', label: 'Umido', icon: 'umido.png' },
     { key: 'carta', label: 'Carta', icon: 'carta.png' },
@@ -138,6 +163,15 @@
 
   let currentQrImageUrl = '';
 
+  // Funzione per calcolare il numero della settimana dell'anno (ISO 8601)
+  function getISOWeek(d) {
+    const date = new Date(d.getTime());
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  }
+
   function buildConfigUI() {
     const container = document.getElementById('days-config');
     container.innerHTML = '';
@@ -149,14 +183,34 @@
       
       let html = `<div class="day-title">Passaggio ${dayNamesFull[idx]}</div>`;
       html += `<div class="day-subtitle">(Da mettere fuori ${dayNamesFull[prevIdx]} sera)</div>`;
-      html += `<div class="checkbox-group">`;
+      
       wasteList.forEach(w => {
-        html += `<label><input type="checkbox" name="${key}" value="${w.key}"> ${w.label}</label>`;
+        const fieldId = `${key}_${w.key}`;
+        html += `
+          <div class="waste-config-item">
+            <div class="waste-config-header">
+              <input type="checkbox" id="${fieldId}" name="${key}" value="${w.key}" onchange="toggleFreqOptions('${fieldId}')">
+              <label for="${fieldId}">${w.label}</label>
+            </div>
+            <div class="freq-selector" id="freq_box_${fieldId}" style="display:none;">
+              <label><input type="radio" name="freq_${fieldId}" value="all" checked> Tutte le sett.</label>
+              <label><input type="radio" name="freq_${fieldId}" value="even"> Sett. Pari</label>
+              <label><input type="radio" name="freq_${fieldId}" value="odd"> Sett. Dispari</label>
+            </div>
+          </div>`;
       });
-      html += `</div>`;
+
       row.innerHTML = html;
       container.appendChild(row);
     });
+  }
+
+  function toggleFreqOptions(fieldId) {
+    const cb = document.getElementById(fieldId);
+    const freqBox = document.getElementById(`freq_box_${fieldId}`);
+    if (freqBox) {
+      freqBox.style.display = cb.checked ? 'flex' : 'none';
+    }
   }
 
   function init() {
@@ -180,9 +234,16 @@
         document.getElementById('view-comune').style.display = 'none';
       }
 
-      const todayIndex = new Date().getDay();
+      const today = new Date();
+      const todayIndex = today.getDay();
       const nextDayIndex = (todayIndex + 1) % 7;
       const nextDayKey = daysKeys[nextDayIndex];
+
+      // Calcola la data di domani per verificare la parità della settimana di passaggio
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const tomorrowWeekNum = getISOWeek(tomorrow);
+      const isTomorrowWeekEven = (tomorrowWeekNum % 2 === 0);
 
       document.getElementById('day-name').innerText = 'OGGI: ' + dayNamesFull[todayIndex].toUpperCase();
       document.getElementById('target-day').innerText = 'Da esporre stasera per la raccolta di ' + dayNamesFull[nextDayIndex] + ':';
@@ -191,16 +252,37 @@
       wasteContainer.innerHTML = '';
 
       const rawVal = params.get(nextDayKey);
-      const selectedWastes = rawVal ? rawVal.split(',') : [];
+      const items = rawVal ? rawVal.split(',') : [];
 
-      if (selectedWastes.length === 0 || rawVal === '' || rawVal === 'nessuno') {
+      let activeWastes = [];
+
+      items.forEach(itemStr => {
+        if (!itemStr || itemStr === 'nessuno') return;
+
+        // Parsing stringa es: "carta:even" oppure "umido"
+        const parts = itemStr.split(':');
+        const wKey = parts[0];
+        const freq = parts[1] || 'all';
+
+        // Filtro bisettimanale
+        let show = false;
+        if (freq === 'all') show = true;
+        else if (freq === 'even' && isTomorrowWeekEven) show = true;
+        else if (freq === 'odd' && !isTomorrowWeekEven) show = true;
+
+        if (show) {
+          activeWastes.push(wKey);
+        }
+      });
+
+      if (activeWastes.length === 0) {
         wasteContainer.innerHTML = `
           <div class="waste-box nessuno">
             <img src="nieterifiuti.png" class="waste-icon" alt="Nessun rifiuto" />
             <span class="waste-text">NESSUN RIFIUTO STASERA</span>
           </div>`;
       } else {
-        selectedWastes.forEach(wKey => {
+        activeWastes.forEach(wKey => {
           const item = wasteList.find(x => x.key === wKey);
           const labelText = item ? item.label.toUpperCase() : wKey.toUpperCase();
           const imgTag = (item && item.icon) 
@@ -214,14 +296,28 @@
         });
       }
 
+      // Precompilazione Form di Configurazione
       if (comuneName) document.getElementById('comune-input').value = comuneName;
       daysKeys.forEach(k => {
-        const vals = (params.get(k) || '').split(',');
-        vals.forEach(v => {
-          const cb = document.querySelector(`input[name="${k}"][value="${v}"]`);
-          if (cb) cb.checked = true;
-        });
+        const rawParam = params.get(k) || '';
+        if (rawParam && rawParam !== 'nessuno') {
+          rawParam.split(',').forEach(itemStr => {
+            const parts = itemStr.split(':');
+            const wKey = parts[0];
+            const freq = parts[1] || 'all';
+            
+            const fieldId = `${k}_${wKey}`;
+            const cb = document.getElementById(fieldId);
+            if (cb) {
+              cb.checked = true;
+              toggleFreqOptions(fieldId);
+              const radio = document.querySelector(`input[name="freq_${fieldId}"][value="${freq}"]`);
+              if (radio) radio.checked = true;
+            }
+          });
+        }
       });
+
     } else {
       document.getElementById('config-mode').style.display = 'block';
       document.getElementById('view-mode').style.display = 'none';
@@ -238,8 +334,15 @@
     }
 
     daysKeys.forEach(key => {
-      const checked = Array.from(document.querySelectorAll(`input[name="${key}"]:checked`)).map(cb => cb.value);
-      searchParams.set(key, checked.length > 0 ? checked.join(',') : 'nessuno');
+      const checkedBoxes = Array.from(document.querySelectorAll(`input[name="${key}"]:checked`));
+      
+      const values = checkedBoxes.map(cb => {
+        const fieldId = cb.id;
+        const selectedFreq = document.querySelector(`input[name="freq_${fieldId}"]:checked`)?.value || 'all';
+        return (selectedFreq === 'all') ? cb.value : `${cb.value}:${selectedFreq}`;
+      });
+
+      searchParams.set(key, values.length > 0 ? values.join(',') : 'nessuno');
     });
 
     const finalUrl = `${baseUrl}?${searchParams.toString()}`;
@@ -269,7 +372,6 @@
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      // Fallback nel caso in cui il fetch venga bloccato da restrizioni del browser
       window.open(currentQrImageUrl, '_blank');
     }
   }
