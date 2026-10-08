@@ -16,6 +16,7 @@
     
     .waste-container { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
     
+    /* Box del Rifiuto con Sfondo Bianco e Bordo Colorato */
     .waste-box { 
       background-color: #ffffff;
       border: 1px solid #e2e8f0;
@@ -28,6 +29,7 @@
       gap: 20px;
     }
 
+    /* Testo del Rifiuto in Nero e Grassetto */
     .waste-text {
       color: #111827;
       font-size: 1.3rem;
@@ -36,6 +38,7 @@
       letter-spacing: 0.5px;
     }
 
+    /* Immagine PNG Grande */
     .waste-icon {
       width: 70px;
       height: 70px;
@@ -43,6 +46,7 @@
       flex-shrink: 0;
     }
     
+    /* Bordo laterale colorato */
     .waste-box.umido { border-left: 8px solid #0088cc; }
     .waste-box.carta { border-left: 8px solid #9e9e9e; }
     .waste-box.plastica { border-left: 8px solid #fbc02d; }
@@ -97,6 +101,7 @@
       background: white;
     }
 
+    /* Layout Configurazione */
     .day-row { border-bottom: 1px solid #eee; padding: 14px 0; text-align: left; }
     .day-title { font-weight: bold; margin-bottom: 4px; color: #2563eb; }
     .day-subtitle { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
@@ -131,6 +136,7 @@
       cursor: pointer;
     }
 
+    /* Box Info Spiegazione */
     .info-btn {
       background: #3b82f6;
       color: white;
@@ -182,6 +188,7 @@
     .popup-body { font-size: 0.95rem; color: #475569; margin-bottom: 16px; }
     .popup-close { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
     
+    /* Footer Credit */
     .footer-credit { margin-top: 24px; font-size: 0.8rem; color: #9ca3af; font-weight: 500; text-align: center; border-top: 1px dashed #e5e7eb; padding-top: 12px; }
   </style>
 </head>
@@ -197,27 +204,29 @@
     <button class="btn-notify" onclick="enableNotificationsAndSchedule()">🔔 Attiva Notifiche sul Cellulare</button>
     
     <div id="waste-container" class="waste-container"></div>
-    <button class="btn-secondary" onclick="showConfig()">Modifica Calendario / Orari</button>
+    <button class="btn-secondary" onclick="showConfig()">Modifica Calendario / Comune</button>
   </div>
 
   <!-- VISTA CONFIGURAZIONE -->
   <div id="config-mode">
     <h1>Configura Calendario</h1>
-    <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">Inserisci il Comune, imposta i 2 orari di notifica e seleziona i rifiuti.</p>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">Inserisci il Comune e seleziona i rifiuti in base al giorno di passaggio.</p>
     
+    <!-- Pulsante e Box Info Guida -->
     <button type="button" class="info-btn" onclick="toggleInfoBox()">ℹ️ Come funziona la frequenza?</button>
     
     <div id="info-box" class="info-box">
       <h3>Come impostare la frequenza:</h3>
-      <p>L'anno ha 52 settimane numerate da 1 a 52:</p>
+      <p>L'anno ha 52 settimane numerate in ordine progressivo da 1 a 52:</p>
       <ul>
         <li><b>Tutte le sett.:</b> Il rifiuto viene raccolto ogni settimana.</li>
-        <li><b>Settimane Pari:</b> Raccolta nelle settimane con numero pari.</li>
-        <li><b>Settimane Dispari:</b> Raccolta nelle settimane con numero dispari.</li>
+        <li><b>Settimane Pari (2, 4, 6, 8...):</b> Il rifiuto viene raccolto a settimane alternate nelle settimane con numero pari dell'anno.</li>
+        <li><b>Settimane Dispari (1, 3, 5, 7...):</b> Il rifiuto viene raccolto a settimane alternate nelle settimane con numero dispari.</li>
       </ul>
+      <p style="margin-top:4px;"><i>La web app calcola automaticamente la settimana corrente e mostrerà solo il rifiuto corretto del giorno!</i></p>
     </div>
 
-    <!-- NOME COMUNE -->
+    <!-- CAMPO NOME COMUNE -->
     <input type="text" id="comune-input" class="input-comune" placeholder="Inserisci Nome Comune (es. Menfi)" value="">
 
     <!-- IMPOSTAZIONE 2 ORARI DI NOTIFICA -->
@@ -235,6 +244,7 @@
       </div>
     </div>
 
+    <!-- FORM CONFIGURAZIONE GIORNI E RIFIUTI (GENERATO VIA JS) -->
     <form id="schedule-form">
       <div id="days-config"></div>
       <button type="button" class="btn-main" onclick="generateLink()">Genera Link & QR Code</button>
@@ -247,7 +257,7 @@
       
       <button type="button" class="btn-download" onclick="downloadQRCode()">Scarica QR Code</button>
       
-      <p style="font-weight:600; font-size:0.85rem; color:#555; margin-top:15px;">Link generato per Tag NFC / Preferiti:</p>
+      <p style="font-weight:600; font-size:0.85rem; color:#555; margin-top:15px;">Link generato per Tag NFC:</p>
       <input type="text" id="generated-url" readonly onclick="this.select()" style="width:100%; padding:8px; margin:8px 0; border-radius:6px; border:1px solid #ccc; font-size:0.8rem; text-align:center;">
     </div>
 
@@ -294,6 +304,7 @@
     box.style.display = (box.style.display === 'block') ? 'none' : 'block';
   }
 
+  // Calcolo numero settimana dell'anno (ISO 8601)
   function getISOWeek(d) {
     const date = new Date(d.getTime());
     date.setHours(0, 0, 0, 0);
@@ -302,6 +313,7 @@
     return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
   }
 
+  // COSTRUZIONE INTERFACCIA CONFIGURAZIONE PER CIASCUN GIORNO E RIFIUTO
   function buildConfigUI() {
     const container = document.getElementById('days-config');
     container.innerHTML = '';
@@ -397,7 +409,6 @@
   function checkImmediatePopup() {
     if (!activeWasteText || activeWasteText === 'NESSUN RIFIUTO STASERA') return;
     
-    // Se l'utente apre la pagina dopo uno dei due orari, mostra subito il popup
     const now = new Date();
     const currentMin = now.getHours() * 60 + now.getMinutes();
     
@@ -409,7 +420,7 @@
     }
   }
 
-  /* --- INIZIALIZZAZIONE --- */
+  /* --- INIZIALIZZAZIONE PAGINA --- */
 
   function init() {
     buildConfigUI();
@@ -462,3 +473,143 @@
         const parts = itemStr.split(':');
         const wKey = parts[0];
         const freq = parts[1] || 'all';
+
+        let show = false;
+        if (freq === 'all') show = true;
+        else if (freq === 'even' && isTomorrowWeekEven) show = true;
+        else if (freq === 'odd' && !isTomorrowWeekEven) show = true;
+
+        if (show) {
+          activeWastes.push(wKey);
+        }
+      });
+
+      if (activeWastes.length === 0) {
+        activeWasteText = 'NESSUN RIFIUTO STASERA';
+        wasteContainer.innerHTML = `
+          <div class="waste-box nessuno">
+            <img src="nieterifiuti.png" class="waste-icon" alt="Nessun rifiuto" />
+            <span class="waste-text">${activeWasteText}</span>
+          </div>`;
+      } else {
+        let labels = [];
+        activeWastes.forEach(wKey => {
+          const item = wasteList.find(x => x.key === wKey);
+          const labelText = item ? item.label.toUpperCase() : wKey.toUpperCase();
+          labels.push(labelText);
+
+          const imgTag = (item && item.icon) 
+            ? `<img src="${item.icon}" class="waste-icon" alt="${labelText}" />` 
+            : '';
+
+          const box = document.createElement('div');
+          box.className = `waste-box ${wKey}`;
+          box.innerHTML = `${imgTag}<span class="waste-text">${labelText}</span>`;
+          wasteContainer.appendChild(box);
+        });
+        activeWasteText = labels.join(', ');
+      }
+
+      // Programmatori orari e popup
+      scheduleSingleNotification(configuredOrario1);
+      scheduleSingleNotification(configuredOrario2);
+      checkImmediatePopup();
+
+      if (comuneName) document.getElementById('comune-input').value = comuneName;
+      document.getElementById('notification-time-1').value = configuredOrario1;
+      document.getElementById('notification-time-2').value = configuredOrario2;
+
+      // RIPOPOLAMENTO CHECKBOX RIFIUTI IN BASE AI PARAMETRI URL
+      daysKeys.forEach(k => {
+        const rawParam = params.get(k) || '';
+        if (rawParam && rawParam !== 'nessuno') {
+          rawParam.split(',').forEach(itemStr => {
+            const parts = itemStr.split(':');
+            const wKey = parts[0];
+            const freq = parts[1] || 'all';
+            
+            const fieldId = `${k}_${wKey}`;
+            const cb = document.getElementById(fieldId);
+            if (cb) {
+              cb.checked = true;
+              toggleFreqOptions(fieldId);
+              const radio = document.querySelector(`input[name="freq_${fieldId}"][value="${freq}"]`);
+              if (radio) radio.checked = true;
+            }
+          });
+        }
+      });
+
+    } else {
+      document.getElementById('config-mode').style.display = 'block';
+      document.getElementById('view-mode').style.display = 'none';
+    }
+  }
+
+  // GENERAZIONE LINK E QR CODE CON PARAMETRI RIFIUTI E ORARI
+  function generateLink() {
+    const baseUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+    const searchParams = new URLSearchParams();
+
+    const comuneVal = document.getElementById('comune-input').value.trim();
+    if (comuneVal) {
+      searchParams.set('comune', comuneVal);
+    }
+
+    const timeVal1 = document.getElementById('notification-time-1').value;
+    const timeVal2 = document.getElementById('notification-time-2').value;
+    if (timeVal1) searchParams.set('ora1', timeVal1);
+    if (timeVal2) searchParams.set('ora2', timeVal2);
+
+    daysKeys.forEach(key => {
+      const checkedBoxes = Array.from(document.querySelectorAll(`input[name="${key}"]:checked`));
+      
+      const values = checkedBoxes.map(cb => {
+        const fieldId = cb.id;
+        const selectedFreq = document.querySelector(`input[name="freq_${fieldId}"]:checked`)?.value || 'all';
+        return (selectedFreq === 'all') ? cb.value : `${cb.value}:${selectedFreq}`;
+      });
+
+      searchParams.set(key, values.length > 0 ? values.join(',') : 'nessuno');
+    });
+
+    const finalUrl = `${baseUrl}?${searchParams.toString()}`;
+    
+    document.getElementById('generated-url').value = finalUrl;
+    
+    currentQrImageUrl = `https://quickchart.io/qr?text=${encodeURIComponent(finalUrl)}&size=300`;
+    
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = `<img src="${currentQrImageUrl}" alt="QR Code" width="200" height="200">`;
+
+    document.getElementById('result').style.display = 'block';
+  }
+
+  async function downloadQRCode() {
+    if (!currentQrImageUrl) return;
+    try {
+      const response = await fetch(currentQrImageUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'QR_Raccolta_Differenziata.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      window.open(currentQrImageUrl, '_blank');
+    }
+  }
+
+  function showConfig() {
+    document.getElementById('view-mode').style.display = 'none';
+    document.getElementById('config-mode').style.display = 'block';
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>
