@@ -7,7 +7,7 @@
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; padding: 20px; }
-    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 480px; text-align: center; position: relative; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 24px; width: 100%; max-width: 480px; text-align: center; }
     h1 { font-size: 1.4rem; margin-bottom: 8px; color: #1a1a1a; }
     .comune-title { font-size: 1.1rem; font-weight: 700; color: #2563eb; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
     
@@ -56,51 +56,8 @@
     .waste-box.pulizia_strada { border-left: 8px solid #e65100; }
     .waste-box.nessuno { border-left: 8px solid #b0bec5; }
 
-    .input-comune { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 12px; text-align: center; font-weight: 600; }
+    .input-comune { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; margin-bottom: 16px; text-align: center; font-weight: 600; }
     
-    /* Box Configurazione Doppi Orari */
-    .time-config-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .time-config-box label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #166534;
-      margin-bottom: 8px;
-    }
-    .time-inputs-container {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-    }
-    .time-input-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-    .time-input-group span {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #15803d;
-    }
-    .input-time {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #86efac;
-      font-size: 1rem;
-      font-weight: 700;
-      text-align: center;
-      color: #15803d;
-      background: white;
-    }
-
     /* Layout Configurazione */
     .day-row { border-bottom: 1px solid #eee; padding: 14px 0; text-align: left; }
     .day-title { font-weight: bold; margin-bottom: 4px; color: #2563eb; }
@@ -177,16 +134,6 @@
     .btn-secondary { background: #6b7280; width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; }
     .btn-download { background: #10b981; width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
     .btn-download:hover { background: #059669; }
-
-    .btn-notify { background: #8b5cf6; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 16px; width: 100%; font-size: 0.9rem; }
-    .btn-notify:hover { background: #7c3aed; }
-    
-    /* Overlay Popup Modale */
-    .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-    .popup-content { background: white; padding: 24px; border-radius: 16px; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .popup-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; color: #1e293b; }
-    .popup-body { font-size: 0.95rem; color: #475569; margin-bottom: 16px; }
-    .popup-close { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
     
     /* Footer Credit */
     .footer-credit { margin-top: 24px; font-size: 0.8rem; color: #9ca3af; font-weight: 500; text-align: center; border-top: 1px dashed #e5e7eb; padding-top: 12px; }
@@ -200,9 +147,6 @@
     <div id="view-comune" class="comune-title"></div>
     <div id="day-name" class="day-badge">Oggi: ---</div>
     <div id="target-day" class="target-day">Da esporre stasera per la raccolta di ---</div>
-    
-    <button class="btn-notify" onclick="enableNotificationsAndSchedule()">🔔 Attiva Notifiche sul Cellulare</button>
-    
     <div id="waste-container" class="waste-container"></div>
     <button class="btn-secondary" onclick="showConfig()">Modifica Calendario / Comune</button>
   </div>
@@ -226,25 +170,8 @@
       <p style="margin-top:4px;"><i>La web app calcola automaticamente la settimana corrente e mostrerà solo il rifiuto corretto del giorno!</i></p>
     </div>
 
-    <!-- CAMPO NOME COMUNE -->
     <input type="text" id="comune-input" class="input-comune" placeholder="Inserisci Nome Comune (es. Menfi)" value="">
 
-    <!-- IMPOSTAZIONE 2 ORARI DI NOTIFICA -->
-    <div class="time-config-box">
-      <label>⏰ Orari Avviso / Popup Stasera:</label>
-      <div class="time-inputs-container">
-        <div class="time-input-group">
-          <span>1° Avviso</span>
-          <input type="time" id="notification-time-1" class="input-time" value="18:30">
-        </div>
-        <div class="time-input-group">
-          <span>2° Avviso</span>
-          <input type="time" id="notification-time-2" class="input-time" value="21:00">
-        </div>
-      </div>
-    </div>
-
-    <!-- FORM CONFIGURAZIONE GIORNI E RIFIUTI (GENERATO VIA JS) -->
     <form id="schedule-form">
       <div id="days-config"></div>
       <button type="button" class="btn-main" onclick="generateLink()">Genera Link & QR Code</button>
@@ -265,15 +192,6 @@
   </div>
 </div>
 
-<!-- POPUP MODALE -->
-<div id="popup-modal" class="popup-overlay">
-  <div class="popup-content">
-    <div class="popup-title">🗑️ Ricorda i Rifiuti!</div>
-    <div id="popup-text" class="popup-body">Stasera ricordati di esporre la spazzatura.</div>
-    <button class="popup-close" onclick="closePopup()">Ho fatto</button>
-  </div>
-</div>
-
 <script>
   const daysKeys = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const dayNamesFull = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
@@ -290,21 +208,13 @@
   ];
 
   let currentQrImageUrl = '';
-  let activeWasteText = '';
-  let configuredOrario1 = '18:30';
-  let configuredOrario2 = '21:00';
-
-  // REGISTRAZIONE SERVICE WORKER
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js').catch(err => console.log(err));
-  }
 
   function toggleInfoBox() {
     const box = document.getElementById('info-box');
     box.style.display = (box.style.display === 'block') ? 'none' : 'block';
   }
 
-  // Calcolo numero settimana dell'anno (ISO 8601)
+  // Funzione per calcolare il numero della settimana dell'anno (ISO 8601)
   function getISOWeek(d) {
     const date = new Date(d.getTime());
     date.setHours(0, 0, 0, 0);
@@ -313,7 +223,6 @@
     return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
   }
 
-  // COSTRUZIONE INTERFACCIA CONFIGURAZIONE PER CIASCUN GIORNO E RIFIUTO
   function buildConfigUI() {
     const container = document.getElementById('days-config');
     container.innerHTML = '';
@@ -355,73 +264,6 @@
     }
   }
 
-  /* --- GESTIONE NOTIFICHE, TIMER E POPUP --- */
-
-  function showPopup(message) {
-    document.getElementById('popup-text').innerText = message;
-    document.getElementById('popup-modal').style.display = 'flex';
-  }
-
-  function closePopup() {
-    document.getElementById('popup-modal').style.display = 'none';
-  }
-
-  function enableNotificationsAndSchedule() {
-    if (!('Notification' in window)) {
-      alert('Questo browser non supporta le notifiche push.');
-      return;
-    }
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        scheduleSingleNotification(configuredOrario1);
-        scheduleSingleNotification(configuredOrario2);
-        alert(`Notifiche attivate! Riceverai gli avvisi alle ${configuredOrario1} e alle ${configuredOrario2}.`);
-      } else {
-        alert('Permesso notifiche negato.');
-      }
-    });
-  }
-
-  function scheduleSingleNotification(orarioStr) {
-    if (!activeWasteText || activeWasteText === 'NESSUN RIFIUTO STASERA' || !orarioStr) return;
-
-    const parts = orarioStr.split(':');
-    const targetHour = parseInt(parts[0], 10);
-    const targetMinute = parseInt(parts[1], 10);
-
-    const now = new Date();
-    const targetTime = new Date();
-    targetTime.setHours(targetHour, targetMinute, 0, 0);
-
-    let delay = targetTime.getTime() - now.getTime();
-
-    if (delay > 0) {
-      setTimeout(() => {
-        const msg = `Stasera devi esporre: ${activeWasteText}`;
-        showPopup(msg);
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification("🗑️ Raccolta Differenziata", { body: msg, icon: 'umido.png' });
-        }
-      }, delay);
-    }
-  }
-
-  function checkImmediatePopup() {
-    if (!activeWasteText || activeWasteText === 'NESSUN RIFIUTO STASERA') return;
-    
-    const now = new Date();
-    const currentMin = now.getHours() * 60 + now.getMinutes();
-    
-    const [h1, m1] = configuredOrario1.split(':').map(Number);
-    const min1 = h1 * 60 + m1;
-
-    if (currentMin >= min1) {
-      showPopup(`Stasera devi esporre: ${activeWasteText}`);
-    }
-  }
-
-  /* --- INIZIALIZZAZIONE PAGINA --- */
-
   function init() {
     buildConfigUI();
     const params = new URLSearchParams(window.location.search);
@@ -436,9 +278,6 @@
       document.getElementById('view-mode').style.display = 'block';
       
       const comuneName = params.get('comune') || '';
-      configuredOrario1 = params.get('ora1') || '18:30';
-      configuredOrario2 = params.get('ora2') || '21:00';
-
       if (comuneName) {
         document.getElementById('view-comune').innerText = 'COMUNE DI ' + comuneName.toUpperCase();
         document.getElementById('view-comune').style.display = 'block';
@@ -485,19 +324,15 @@
       });
 
       if (activeWastes.length === 0) {
-        activeWasteText = 'NESSUN RIFIUTO STASERA';
         wasteContainer.innerHTML = `
           <div class="waste-box nessuno">
             <img src="nieterifiuti.png" class="waste-icon" alt="Nessun rifiuto" />
-            <span class="waste-text">${activeWasteText}</span>
+            <span class="waste-text">NESSUN RIFIUTO STASERA</span>
           </div>`;
       } else {
-        let labels = [];
         activeWastes.forEach(wKey => {
           const item = wasteList.find(x => x.key === wKey);
           const labelText = item ? item.label.toUpperCase() : wKey.toUpperCase();
-          labels.push(labelText);
-
           const imgTag = (item && item.icon) 
             ? `<img src="${item.icon}" class="waste-icon" alt="${labelText}" />` 
             : '';
@@ -507,19 +342,9 @@
           box.innerHTML = `${imgTag}<span class="waste-text">${labelText}</span>`;
           wasteContainer.appendChild(box);
         });
-        activeWasteText = labels.join(', ');
       }
 
-      // Programmatori orari e popup
-      scheduleSingleNotification(configuredOrario1);
-      scheduleSingleNotification(configuredOrario2);
-      checkImmediatePopup();
-
       if (comuneName) document.getElementById('comune-input').value = comuneName;
-      document.getElementById('notification-time-1').value = configuredOrario1;
-      document.getElementById('notification-time-2').value = configuredOrario2;
-
-      // RIPOPOLAMENTO CHECKBOX RIFIUTI IN BASE AI PARAMETRI URL
       daysKeys.forEach(k => {
         const rawParam = params.get(k) || '';
         if (rawParam && rawParam !== 'nessuno') {
@@ -546,7 +371,6 @@
     }
   }
 
-  // GENERAZIONE LINK E QR CODE CON PARAMETRI RIFIUTI E ORARI
   function generateLink() {
     const baseUrl = window.location.protocol + '//' + window.location.host + window.location.pathname;
     const searchParams = new URLSearchParams();
@@ -555,11 +379,6 @@
     if (comuneVal) {
       searchParams.set('comune', comuneVal);
     }
-
-    const timeVal1 = document.getElementById('notification-time-1').value;
-    const timeVal2 = document.getElementById('notification-time-2').value;
-    if (timeVal1) searchParams.set('ora1', timeVal1);
-    if (timeVal2) searchParams.set('ora2', timeVal2);
 
     daysKeys.forEach(key => {
       const checkedBoxes = Array.from(document.querySelectorAll(`input[name="${key}"]:checked`));
